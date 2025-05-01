@@ -20,6 +20,4 @@
 
 **Gumování** – překreslení pixelů
 
-**Kreslení přes přesné algoritmy** – např. algoritmus pro kružnice
-
 **Zarovnávání čáry při držení SHIFTu**

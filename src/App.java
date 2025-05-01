@@ -11,7 +11,6 @@ import Fillers.Filler;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.KeyboardFocusManager;
 import java.util.ArrayList;
 
 public class App {
@@ -20,6 +19,7 @@ public class App {
     private final Raster raster;
     private MouseAdapter mouseAdapter;
     private MouseMotionAdapter mouseMotionAdapter;
+    private KeyAdapter keyAdapter;
     private Point startPoint;
     private Point currentPoint; // Aktuální pozice kurzoru
     private LineCanvasRasterizer rasterizer;
@@ -29,7 +29,7 @@ public class App {
     private Color previousColor; // Pro uchování barvy před použitím gumy
 
     private String currentTool = "line"; // Defaultní nástroj
-    private Color currentColor = Color.BLACK;
+    private Color currentColor = Color.WHITE;
     private boolean snapTo45 = false; // Příznak pro snapování na 45°
     private boolean dottedLine = false; // Příznak pro čárkovanou čáru
     private int lineWidth = 1; // Tloušťka čáry
@@ -69,7 +69,7 @@ public class App {
         frame.pack();
         frame.setVisible(true);
 
-        clear(Color.WHITE.getRGB());
+        clear(Color.BLACK.getRGB());
     }
 
     private JPanel createToolbar() {
@@ -108,7 +108,7 @@ public class App {
         eraserButton.addActionListener(e -> {
             currentTool = "eraser";
             previousColor = currentColor; // Uložíme původní barvu
-            currentColor = Color.BLACK;   // Nastavím barvu na barvu pozadí a "překrelím to"
+            currentColor = Color.BLACK;   // Nastavím barvu na barvu pozadí (černou) a "překreslím to"
         });
 
         // Výběr tloušťky čáry
@@ -222,12 +222,9 @@ public class App {
             }
         };
 
-        panel.addMouseListener(mouseAdapter);
-        panel.addMouseMotionListener(mouseMotionAdapter);
-
-        // Přidání KeyListener na úrovni JFrame místo panel pro zachycení kláves
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
-            if (e.getID() == KeyEvent.KEY_PRESSED) {
+        keyAdapter = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
                     snapTo45 = true; // Zapnutí snapování na 45°
                     panel.repaint(); // Překreslit panel aby se projevilo snapování
@@ -236,7 +233,15 @@ public class App {
                     dottedLine = true; // Zapnutí čárkované čáry
                     panel.repaint();
                 }
-            } else if (e.getID() == KeyEvent.KEY_RELEASED) {
+                if (e.getKeyCode() == KeyEvent.VK_C) {
+                    clear(Color.BLACK.getRGB()); // Smazání plátna při stisku C
+                    canvas.clear(); // Vyčistíme také LineCanvas
+                    panel.repaint();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
                     snapTo45 = false;
                     panel.repaint();
@@ -246,9 +251,13 @@ public class App {
                     panel.repaint();
                 }
             }
-            return false; // Umožní zpracování události dalšími listenery
-        });
+        };
 
+        panel.addMouseListener(mouseAdapter);
+        panel.addMouseMotionListener(mouseMotionAdapter);
+        panel.addKeyListener(keyAdapter);
+
+        // Nastavení fokusovatelnosti panelu, aby zachytával události klávesnice
         panel.setFocusable(true);
     }
 

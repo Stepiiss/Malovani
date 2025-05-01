@@ -9,7 +9,7 @@
  **Nástroje** - Volí se přes jednoduché rozhraní 
  
 
-**Funkce**¨
+**Funkce**
 
 
 **Kreslení s volitelnou barvou**

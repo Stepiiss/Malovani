@@ -57,7 +57,7 @@ public class App {
     }
 
     public void start() {
-        JFrame frame = new JFrame("Jednoduché malování");
+        JFrame frame = new JFrame("Kerthor malování");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel tools = createToolbar();
@@ -93,7 +93,7 @@ public class App {
 
         JButton colorButton = new JButton("Barva");
         colorButton.addActionListener(e -> {
-            Color selectedColor = JColorChooser.showDialog(panel, "Vyberte barvu", currentColor);
+            Color selectedColor = JColorChooser.showDialog(panel, "Vyber barvu", currentColor);
             if (selectedColor != null) {
                 currentColor = selectedColor;
             }
@@ -107,7 +107,7 @@ public class App {
         eraserButton.addActionListener(e -> {
             currentTool = "eraser";
             previousColor = currentColor; // Uložíme původní barvu
-            currentColor = Color.BLACK;   // Nastavíme barvu na bílou pro mazání
+            currentColor = Color.BLACK;   // Nastavím barvu na barvu pozadí a "překrelím to"
         });
 
         // Výběr tloušťky čáry
@@ -150,7 +150,7 @@ public class App {
                     panel.repaint();
                     return;
                 } else if ("eraser".equals(currentTool)) {
-                    // Guma se používá jako čára s bílou barvou
+                    // Guma se používá jako čára, která má barvu pozadí = černá
                     // Začíname kreslit gumu
                 } else if ("polygon".equals(currentTool)) {
                     if (currentPolygon == null) {
@@ -170,7 +170,7 @@ public class App {
                 currentPoint = new Point(e.getX(), e.getY());
 
                 if ("eraser".equals(currentTool)) {
-                    // Kreslíme bílou čáru jako gumu
+                    // Kreslíme černou čáru jako gumu
                     drawThickLine(startPoint, currentPoint, lineWidth * 2); // Pro gumu použijeme dvojnásobnou tloušťku
                     currentColor = previousColor; // Obnovíme původní barvu po použití gumy
                 } else if ("polygon".equals(currentTool) && e.getClickCount() == 2) {

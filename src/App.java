@@ -11,6 +11,7 @@ import Fillers.Filler;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.KeyboardFocusManager;
 import java.util.ArrayList;
 
 public class App {
@@ -141,6 +142,7 @@ public class App {
         mouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                panel.requestFocusInWindow(); // Request focus when mouse is pressed
                 startPoint = new Point(e.getX(), e.getY());
                 currentPoint = startPoint;
 
@@ -223,27 +225,30 @@ public class App {
         panel.addMouseListener(mouseAdapter);
         panel.addMouseMotionListener(mouseMotionAdapter);
 
-        panel.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
+        // Přidání KeyListener na úrovni JFrame místo panel pro zachycení kláves
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+            if (e.getID() == KeyEvent.KEY_PRESSED) {
                 if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
                     snapTo45 = true; // Zapnutí snapování na 45°
+                    panel.repaint(); // Překreslit panel aby se projevilo snapování
                 }
                 if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
                     dottedLine = true; // Zapnutí čárkované čáry
+                    panel.repaint();
                 }
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {
+            } else if (e.getID() == KeyEvent.KEY_RELEASED) {
                 if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
                     snapTo45 = false;
+                    panel.repaint();
                 }
                 if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
                     dottedLine = false;
+                    panel.repaint();
                 }
             }
+            return false; // Umožní zpracování události dalšími listenery
         });
+
         panel.setFocusable(true);
     }
 
@@ -373,11 +378,42 @@ public class App {
         int dx = p2.getX() - p1.getX();
         int dy = p2.getY() - p1.getY();
 
-        if (Math.abs(dx) > Math.abs(dy)) {
-            dy = 0;
-        } else {
-            dx = 0;
+        // Pokud je malý pohyb, zarovnáme na 0 stupňů (horizontální čára)
+        if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+            return p1;
         }
+
+        // Vypočítáme absolutní hodnoty pro zjednodušení
+        int absDx = Math.abs(dx);
+        int absDy = Math.abs(dy);
+
+        // Vypočítáme úhel mezi body (převedeme do stupňů)
+        double angle = Math.toDegrees(Math.atan2(absDy, absDx));
+
+        // Najdeme nejbližší násobek 45 stupňů
+        int snapAngle;
+        if (angle < 22.5) {
+            snapAngle = 0; // horizontální čára (0°)
+        } else if (angle < 67.5) {
+            snapAngle = 45; // diagonála (45°)
+        } else {
+            snapAngle = 90; // vertikální čára (90°)
+        }
+
+        // Na základě snapAngle upravíme hodnoty dx a dy
+        if (snapAngle == 0) {
+            // Horizontální čára
+            dy = 0;
+        } else if (snapAngle == 90) {
+            // Vertikální čára
+            dx = 0;
+        } else if (snapAngle == 45) {
+            // Diagonální čára - normalizujeme dx a dy aby byly stejné hodnoty
+            int magnitude = Math.max(absDx, absDy);
+            dx = (dx >= 0) ? magnitude : -magnitude;
+            dy = (dy >= 0) ? magnitude : -magnitude;
+        }
+
         return new Point(p1.getX() + dx, p1.getY() + dy);
     }
 

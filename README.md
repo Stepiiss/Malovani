@@ -4,7 +4,7 @@
  
  **Shift + kreslení čáry** - Zarovnání na násobky 45° 
  
- **Enter** - Dokončení kreslení polygonu 
+ **Double click** - Dokončení kreslení polygonu 
  
  **Nástroje** - Volí se přes jednoduché rozhraní 
  

@@ -345,7 +345,7 @@ public class App {
         }
     }
 
-    // Pomocné kreslení kružnice se zadaným poloměrem
+    // Pomocná třída pro kreslení kružnice
     private void drawSimpleCircle(int centerX, int centerY, int radius) {
         int x = 0, y = radius;
         int d = 3 - 2 * radius;

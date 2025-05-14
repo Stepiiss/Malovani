@@ -12,15 +12,13 @@ public class LineRasterizerTrivial implements Rasterizer {
     private Raster raster;
 
     public LineRasterizerTrivial(Raster raster) {
-        this.color = color;
         this.raster = raster;
     }
 
     @Override
     public void setColor(Color color) {
-        color = color;
+        this.color = color; // Opraveno - přidáno this
     }
-
 
     @Override
     public void rasterize(Line line) {
@@ -28,7 +26,6 @@ public class LineRasterizerTrivial implements Rasterizer {
         int y1 = line.getPoint1().getY();
         int x2 = line.getPoint2().getX();
         int y2 = line.getPoint2().getY();
-
 
         int dx = Math.abs(x2 - x1);
         int dy = Math.abs(y2 - y1);

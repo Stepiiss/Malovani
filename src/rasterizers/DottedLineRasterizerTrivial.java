@@ -1,7 +1,6 @@
 package rasterizers;
 
 import models.Line;
-import models.LineCanvas;
 import rasters.Raster;
 
 import java.awt.*;
@@ -10,6 +9,7 @@ import java.util.ArrayList;
 public class DottedLineRasterizerTrivial implements Rasterizer {
 
     private Raster raster;
+    private Color color;
 
     public DottedLineRasterizerTrivial(Raster raster) {
         this.raster = raster;
@@ -17,7 +17,7 @@ public class DottedLineRasterizerTrivial implements Rasterizer {
 
     @Override
     public void setColor(Color color) {
-
+        this.color = color; // Opraveno - přidáno this
     }
 
     @Override
@@ -27,38 +27,32 @@ public class DottedLineRasterizerTrivial implements Rasterizer {
         int x2 = line.getPoint2().getX();
         int y2 = line.getPoint2().getY();
 
-        if(x1 < 0 || x1 >= raster.getWidth() || x2 < 0 || x2 >= raster.getWidth() || y1 < 0 || y1 >= raster.getHeight() || y2 < 0 || y2 >= raster.getHeight()) {
+        // Ošetření hranic rastru
+        if (x1 < 0 || x1 >= raster.getWidth() || x2 < 0 || x2 >= raster.getWidth() ||
+                y1 < 0 || y1 >= raster.getHeight() || y2 < 0 || y2 >= raster.getHeight()) {
             return;
         }
 
-        float k = (float) (y2 - y1) / (x2 - x1);
-        float q = y1 - (k * x1);
+        // Použití Bresenhamova algoritmu s preskakováním pixelů
+        int dx = Math.abs(x2 - x1);
+        int dy = Math.abs(y2 - y1);
+        int sx = x1 < x2 ? 1 : -1;
+        int sy = y1 < y2 ? 1 : -1;
+        int err = dx - dy;
+        int dotSpacing = 3; // Mezera mezi tečkami
+        int dotCounter = 0;
 
-
-        if (Math.abs(k) < 1) {
-            if (x1 > x2) {
-                int x = x1;
-                x1 = x2;
-                x2 = x;
+        while (true) {
+            // Vykreslit pixel pouze když je čas (každý dotSpacing krok)
+            if (dotCounter % dotSpacing == 0) {
+                raster.setPixel(x1, y1, line.getColor().getRGB());
             }
+            dotCounter++;
 
-            for (int x = x1; x <= x2; x += 3) {
-                int y = Math.round(k * x + q);
-
-                raster.setPixel(x, y, line.getColor().getRGB());
-            }
-        } else {
-            if (y1 > y2) {
-                int y = y1;
-                y1 = y2;
-                y2 = y;
-            }
-
-            for (int y = y1; y < y2; y += 3) {
-                int x = Math.round((y - q) / k);
-
-                raster.setPixel(x, y, line.getColor().getRGB());
-            }
+            if (x1 == x2 && y1 == y2) break;
+            int e2 = 2 * err;
+            if (e2 > -dy) { err -= dy; x1 += sx; }
+            if (e2 < dx) { err += dx; y1 += sy; }
         }
     }
 
@@ -68,5 +62,4 @@ public class DottedLineRasterizerTrivial implements Rasterizer {
             rasterize(line);
         }
     }
-
 }

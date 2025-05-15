@@ -7,8 +7,6 @@ import rasterizers.LineCanvasRasterizer;
 import rasters.Raster;
 import rasters.RasterBufferedImage;
 import Fillers.BasicFiller;
-import Fillers.Filler;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -39,7 +37,7 @@ public class App {
     // Předchozí barva (použití při gumování)
     private Color previousColor;
 
-    // Aktuální nástroj, barva
+    // Aktuální nástroj, barva, tloušťka (základní hodnoty)
     private String currentTool = "line";
     private Color currentColor = Color.WHITE;
     private boolean snapTo45 = false;
@@ -68,7 +66,7 @@ public class App {
         };
 
         panel.setPreferredSize(new Dimension(width, height));
-        createAdapters(); // Nastavení posluchačů na vstupy
+        createAdapters(); // Nastavení vstupů
     }
 
     // Vytvoření okna
@@ -87,9 +85,10 @@ public class App {
         clear(Color.BLACK.getRGB()); // vymazání plátna na černo
     }
 
-    // Vytvoření toolbaru s nástroji
+    // Vytvoření navbaru s nástroji + jeho nastavení + nastavení nástrojů (Tloušťka, čára, guma...)
     private JPanel createToolbar() {
         JPanel toolbar = new JPanel();
+        //zarovnání panelu s nástroji
         toolbar.setLayout(new FlowLayout(FlowLayout.LEFT));
 
         // Tlačítka pro různé nástroje
@@ -110,6 +109,7 @@ public class App {
 
         JButton colorButton = new JButton("Barva");
         colorButton.addActionListener(e -> {
+            //Okno pro volbu barvy
             Color selectedColor = JColorChooser.showDialog(panel, "Vyber barvu", currentColor);
             if (selectedColor != null) {
                 currentColor = selectedColor;
@@ -125,11 +125,12 @@ public class App {
         eraserButton.addActionListener(e -> {
             currentTool = "eraser";
             previousColor = currentColor;
-            currentColor = Color.BLACK; // "gumování" je kreslení černou barvou
+            currentColor = Color.BLACK; // gumování je kreslení černou barvou
         });
 
         // Volba tloušťky čáry
         JLabel widthLabel = new JLabel("Tloušťka:");
+        //pole s vyberem tloustky cary
         JComboBox<Integer> lineWidthSelector = new JComboBox<>(new Integer[]{1, 2, 3, 5, 8});
         lineWidthSelector.setSelectedIndex(0);
         lineWidthSelector.addActionListener(e -> {
@@ -151,7 +152,7 @@ public class App {
         return toolbar;
     }
 
-    // Nastavení listeneru pro myš a klávesnici
+    // Nastavení akcí pro myš a klávesnici (stisknutí, puštění....)
     private void createAdapters() {
         mouseAdapter = new MouseAdapter() {
             @Override
@@ -159,13 +160,11 @@ public class App {
                 panel.requestFocusInWindow();
                 startPoint = new Point(e.getX(), e.getY());
                 currentPoint = startPoint;
-
+                //podminka pro vypln
                 if ("fill".equals(currentTool)) {
                     filler.fill(new java.awt.Point(e.getX(), e.getY()), currentColor);
                     panel.repaint();
-                    return;
-                } else if ("eraser".equals(currentTool)) {
-                    // Guma se chová jako kreslení čáry s černou barvou
+
                 } else if ("polygon".equals(currentTool)) {
                     if (currentPolygon == null) {
                         currentPolygon = new Polygon();
@@ -185,7 +184,7 @@ public class App {
                 if ("eraser".equals(currentTool)) {
                     drawThickLine(startPoint, currentPoint, lineWidth * 2); // silnější tloušťka pro gumu
                     currentColor = previousColor;
-                } else if ("polygon".equals(currentTool) && e.getClickCount() == 2) {
+                } else if ("polygon".equals(currentTool) && e.getClickCount() == 2) { //vykreslení polygonu po double clicku
                     if (!currentPolygon.getPoints().isEmpty()) {
                         drawThickLine(
                                 currentPolygon.getPoints().get(currentPolygon.getPoints().size() - 1),
@@ -228,7 +227,7 @@ public class App {
                 panel.repaint();
             }
         };
-
+// klavesnice
         keyAdapter = new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -275,18 +274,10 @@ public class App {
 
     // Kreslení čáry s danou tloušťkou
     public void drawThickLine(Point start, Point end, int thickness) {
-        if (thickness <= 1) {
-            drawLine(start, end);
-            return;
-        }
-
         int halfThickness = thickness / 2;
-
         int dx = end.getX() - start.getX();
         int dy = end.getY() - start.getY();
         double len = Math.sqrt(dx*dx + dy*dy);
-        if (len < 0.0001) return;
-
         double nx = -dy / len;
         double ny = dx / len;
 
@@ -312,6 +303,7 @@ public class App {
         drawThickLine(topRight, bottomRight, lineWidth);
         drawThickLine(bottomRight, bottomLeft, lineWidth);
         drawThickLine(bottomLeft, topLeft, lineWidth);
+
     }
 
     // Kreslení kružnice
